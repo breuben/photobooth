@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -17,6 +20,8 @@ namespace Photobooth
 
 		private TextBlock promptTextblock;
 		private FileSystemWatcher imageMonitor;
+
+		private Queue<string> imageQueue = new Queue<string>();
 
 		public KioskWindow(string promptText, string fontFamilyName, double fontSize, string imagePath, string imageExtension, int displaySeconds)
 		{
@@ -39,6 +44,7 @@ namespace Photobooth
 			};
 
 			showPrompt();
+
 			startMonitoring();
 		}
 
@@ -54,55 +60,73 @@ namespace Photobooth
 			{
 				MessageBox.Show(e.ToString());
 			}
+
+			Task queueWatcher = new Task(watchImageQueue);
+			queueWatcher.Start();
+		}
+
+		private void watchImageQueue()
+		{
+			while (true)
+			{
+				while (imageQueue.Count > 0)
+					displayQueueTop();
+
+				showPrompt();
+
+				Thread.Sleep(100);
+			}
+		}
+
+		private void displayQueueTop()
+		{
+			string imagePath;
+			lock (imageQueue)
+			{
+				imagePath = imageQueue.Dequeue();
+			}
+
+			showImage(imagePath);
+
+			Thread.Sleep(DisplaySeconds * 1000);
 		}
 
 		private void ImageMonitorOnCreated(object sender, FileSystemEventArgs fileSystemEventArgs)
 		{
-			dispatchShowImage(fileSystemEventArgs.FullPath);
-
-			Thread.Sleep(DisplaySeconds * 1000);
-
-			dispatchShowPrompt();
-		}
-
-		private void dispatchShowPrompt()
-		{
-			this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(showPrompt));
+			lock (imageQueue)
+			{
+				imageQueue.Enqueue(fileSystemEventArgs.FullPath);
+			}
 		}
 
 		private void showPrompt()
 		{
-			this.Content = promptTextblock;
+			this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => this.Content = promptTextblock));
 		}
 
-		private void dispatchShowImage(string imagePath)
+		private void showImage(string imagePath)
 		{
 			this.Dispatcher.Invoke(
 				System.Windows.Threading.DispatcherPriority.Normal,
 				new Action(
 				delegate()
 				{
-					showImage(imagePath);
+					try
+					{
+						var photo = new Image
+						{
+							HorizontalAlignment = HorizontalAlignment.Center,
+							VerticalAlignment = VerticalAlignment.Center,
+							Source = new BitmapImage(new Uri(imagePath))
+						};
+
+						this.Content = photo;
+					}
+					catch (Exception)
+					{
+						// Probabably a threading exception, we can safely ignore, just keep chugging along
+					}
 				}));
-		}
-
-		private void showImage(string imagePath)
-		{
-			try
-			{
-				var photo = new Image
-				{
-					HorizontalAlignment = HorizontalAlignment.Center,
-					VerticalAlignment = VerticalAlignment.Center,
-					Source = new BitmapImage(new Uri(imagePath))
-				};
-
-				this.Content = photo;
-			}
-			catch (Exception)
-			{
-				// Probabably a threading exception, we can safely ignore, just keep chugging along
-			}
 		}
 	}
 }
