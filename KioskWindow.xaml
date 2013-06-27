@@ -1,0 +1,7 @@
+﻿<Window x:Class="Photobooth.KioskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KioskWindow"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized" Background="#00000000" Foreground="#FF230FE4" ResizeMode="NoResize" Cursor="None">
+</Window>
