@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Photobooth.Properties;
 
 namespace Photobooth
 {
@@ -12,14 +13,14 @@ namespace Photobooth
 
 		private void StartPhotoboothButton_Click(object sender, RoutedEventArgs e)
 		{
-			string promptText = "Click the button on the remote to take a picture.\nDon't forget to smile!";
-			string fontFamilyname = "Gabriola";
-			double fontSize = 120;
-			string imagePath = @"C:\Captures";
-			string imageExtension = "*.jpg";
-			int displaySeconds = 5;
+			string promptText = Settings.Default.PromptText;
+			string fontFamilyName = Settings.Default.FontFamily;
+			double fontSize = Settings.Default.FontSize;
+			string imagePath = Settings.Default.ImagePath;
+			string imageExtension = Settings.Default.ImageExtension;
+			int displaySeconds = Settings.Default.DisplaySeconds;
 
-			KioskWindow kioskWindow = new KioskWindow(promptText, fontFamilyname, fontSize, imagePath, imageExtension, displaySeconds);
+			KioskWindow kioskWindow = new KioskWindow(promptText, fontFamilyName, fontSize, imagePath, imageExtension, displaySeconds);
 			kioskWindow.Show();
 		}
 	}
