@@ -42,7 +42,7 @@
     <AssemblyOriginatorKeyFile>photoboothkey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\camera_blue.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\camera.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -113,10 +113,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\camera_blue.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\camera.png" />
+    <None Include="Resources\camera.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

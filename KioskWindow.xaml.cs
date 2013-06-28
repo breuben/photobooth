@@ -13,39 +13,32 @@ namespace Photobooth
 {
 	public partial class KioskWindow
 	{
-		public string PromptText { get; set; }
-		public string ImagePath { get; set; }
-		public string ImageExtension { get; set; }
-		public int DisplaySeconds { get; set; }
-
-		private TextBlock promptTextblock;
-		private FileSystemWatcher imageMonitor;
+		private readonly PhotoboothSettings _settings;
+		private readonly TextBlock _promptTextblock;
+		private FileSystemWatcher _imageMonitor;
 
 		private Queue<string> imageQueue = new Queue<string>();
 
 		public KioskWindow(PhotoboothSettings settings)
 		{
-			PromptText = settings.PromptText;
+			_settings = settings;
 			FontFamily = new FontFamily(settings.FontFamilyName);
 			FontSize = settings.FontSize;
-			ImagePath = settings.ImagePath;
-			ImageExtension = settings.ImageExtension;
-			DisplaySeconds = settings.DisplaySeconds;
 
 			InitializeComponent();
 
-			promptTextblock = new TextBlock
+			_promptTextblock = new TextBlock
 			{
 				HorizontalAlignment = HorizontalAlignment.Center,
 				VerticalAlignment = VerticalAlignment.Center,
 				TextAlignment = TextAlignment.Center,
 				TextWrapping = TextWrapping.NoWrap,
-				Text = PromptText
+				Text = settings.PromptText
 			};
 
-			showPrompt();
+			ShowPrompt();
 
-			startMonitoring();
+			StartMonitoringImageDirectory();
 		}
 
 		private void KioskWindow_OnKeyUp(object sender, KeyEventArgs e)
@@ -56,37 +49,37 @@ namespace Photobooth
 			}
 		}
 
-		private void startMonitoring()
+		private void StartMonitoringImageDirectory()
 		{
 			try
 			{
-				imageMonitor = new FileSystemWatcher(ImagePath, ImageExtension);
-				imageMonitor.Created += ImageMonitorOnCreated;
-				imageMonitor.EnableRaisingEvents = true;
+				_imageMonitor = new FileSystemWatcher(_settings.ImagePath, _settings.ImageExtension);
+				_imageMonitor.Created += ImageMonitorOnFileCreated;
+				_imageMonitor.EnableRaisingEvents = true;
 			}
 			catch (Exception e)
 			{
 				MessageBox.Show(e.ToString());
 			}
 
-			Task queueWatcher = new Task(watchImageQueue);
+			Task queueWatcher = new Task(WatchImageQueue);
 			queueWatcher.Start();
 		}
 
-		private void watchImageQueue()
+		private void WatchImageQueue()
 		{
 			while (true)
 			{
 				while (imageQueue.Count > 0)
-					displayQueueTop();
+					ShowImageFromTopOfQueue();
 
-				showPrompt();
+				ShowPrompt();
 
 				Thread.Sleep(100);
 			}
 		}
 
-		private void displayQueueTop()
+		private void ShowImageFromTopOfQueue()
 		{
 			string imagePath;
 			lock (imageQueue)
@@ -94,12 +87,12 @@ namespace Photobooth
 				imagePath = imageQueue.Dequeue();
 			}
 
-			showImage(imagePath);
+			ShowImage(imagePath);
 
-			Thread.Sleep(DisplaySeconds * 1000);
+			Thread.Sleep(_settings.DisplaySeconds * 1000);
 		}
 
-		private void ImageMonitorOnCreated(object sender, FileSystemEventArgs fileSystemEventArgs)
+		private void ImageMonitorOnFileCreated(object sender, FileSystemEventArgs fileSystemEventArgs)
 		{
 			lock (imageQueue)
 			{
@@ -107,18 +100,18 @@ namespace Photobooth
 			}
 		}
 
-		private void showPrompt()
+		private void ShowPrompt()
 		{
 			this.Dispatcher.Invoke(
 				System.Windows.Threading.DispatcherPriority.Normal,
 				new Action(
 					() =>
 					{
-						this.Content = promptTextblock;
+						this.Content = _promptTextblock;
 					}));
 		}
 
-		private void showImage(string imagePath)
+		private void ShowImage(string imagePath)
 		{
 			this.Dispatcher.Invoke(
 				System.Windows.Threading.DispatcherPriority.Normal,
@@ -127,31 +120,33 @@ namespace Photobooth
 					{
 						try
 						{
-							var bitmap = new BitmapImage();
-							using (FileStream fs = new FileStream(imagePath, FileMode.Open))
+							this.Content = new Image
 							{
-								bitmap.BeginInit();
-								bitmap.CacheOption = BitmapCacheOption.OnLoad;
-								bitmap.StreamSource = fs;
-								bitmap.EndInit();
-							}
-
-							bitmap.Freeze();
-
-							var photo = new Image
-								{
-									HorizontalAlignment = HorizontalAlignment.Center,
-									VerticalAlignment = VerticalAlignment.Center,
-									Source = bitmap
-								};
-
-							this.Content = photo;
+								HorizontalAlignment = HorizontalAlignment.Center,
+								VerticalAlignment = VerticalAlignment.Center,
+								Source = LoadBitmap(imagePath)
+							};
 						}
 						catch (Exception)
 						{
 							// Probabably a threading exception, we can safely ignore, just keep chugging along
 						}
 					}));
+		}
+
+		private static BitmapImage LoadBitmap(string imagePath)
+		{
+			var bitmap = new BitmapImage();
+			using (FileStream fs = new FileStream(imagePath, FileMode.Open))
+			{
+				bitmap.BeginInit();
+				bitmap.CacheOption = BitmapCacheOption.OnLoad;
+				bitmap.StreamSource = fs;
+				bitmap.EndInit();
+			}
+
+			bitmap.Freeze();
+			return bitmap;
 		}
 	}
 }
