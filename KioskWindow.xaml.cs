@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -23,14 +23,14 @@ namespace Photobooth
 
 		private Queue<string> imageQueue = new Queue<string>();
 
-		public KioskWindow(string promptText, string fontFamilyName, double fontSize, string imagePath, string imageExtension, int displaySeconds)
+		public KioskWindow(PhotoboothSettings settings)
 		{
-			PromptText = promptText;
-			FontFamily = new FontFamily(fontFamilyName);
-			FontSize = fontSize;
-			ImagePath = imagePath;
-			ImageExtension = imageExtension;
-			DisplaySeconds = displaySeconds;
+			PromptText = settings.PromptText;
+			FontFamily = new FontFamily(settings.FontFamilyName);
+			FontSize = settings.FontSize;
+			ImagePath = settings.ImagePath;
+			ImageExtension = settings.ImageExtension;
+			DisplaySeconds = settings.DisplaySeconds;
 
 			InitializeComponent();
 
@@ -46,6 +46,14 @@ namespace Photobooth
 			showPrompt();
 
 			startMonitoring();
+		}
+
+		private void KioskWindow_OnKeyUp(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Escape)
+			{
+				this.Close();
+			}
 		}
 
 		private void startMonitoring()
@@ -101,7 +109,13 @@ namespace Photobooth
 
 		private void showPrompt()
 		{
-			this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => this.Content = promptTextblock));
+			this.Dispatcher.Invoke(
+				System.Windows.Threading.DispatcherPriority.Normal,
+				new Action(
+					() =>
+					{
+						this.Content = promptTextblock;
+					}));
 		}
 
 		private void showImage(string imagePath)
@@ -109,24 +123,35 @@ namespace Photobooth
 			this.Dispatcher.Invoke(
 				System.Windows.Threading.DispatcherPriority.Normal,
 				new Action(
-				delegate()
-				{
-					try
+					() =>
 					{
-						var photo = new Image
+						try
 						{
-							HorizontalAlignment = HorizontalAlignment.Center,
-							VerticalAlignment = VerticalAlignment.Center,
-							Source = new BitmapImage(new Uri(imagePath))
-						};
+							var bitmap = new BitmapImage();
+							using (FileStream fs = new FileStream(imagePath, FileMode.Open))
+							{
+								bitmap.BeginInit();
+								bitmap.CacheOption = BitmapCacheOption.OnLoad;
+								bitmap.StreamSource = fs;
+								bitmap.EndInit();
+							}
 
-						this.Content = photo;
-					}
-					catch (Exception)
-					{
-						// Probabably a threading exception, we can safely ignore, just keep chugging along
-					}
-				}));
+							bitmap.Freeze();
+
+							var photo = new Image
+								{
+									HorizontalAlignment = HorizontalAlignment.Center,
+									VerticalAlignment = VerticalAlignment.Center,
+									Source = bitmap
+								};
+
+							this.Content = photo;
+						}
+						catch (Exception)
+						{
+							// Probabably a threading exception, we can safely ignore, just keep chugging along
+						}
+					}));
 		}
 	}
 }

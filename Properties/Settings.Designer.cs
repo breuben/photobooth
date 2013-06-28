@@ -25,18 +25,6 @@ namespace Photobooth.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Click the button on the remote to take a picture.\r\nDon\'t forget to smile!")]
-        public string PromptText {
-            get {
-                return ((string)(this["PromptText"]));
-            }
-            set {
-                this["PromptText"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Gabriola")]
         public string FontFamily {
             get {
@@ -92,6 +80,18 @@ namespace Photobooth.Properties {
             }
             set {
                 this["DisplaySeconds"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Click the button on the remote to take a picture.\r\nDon\'t forget to smile!")]
+        public string PromptText {
+            get {
+                return ((string)(this["PromptText"]));
+            }
+            set {
+                this["PromptText"] = value;
             }
         }
     }

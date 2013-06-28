@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using Photobooth.Properties;
+﻿using System;
+using System.Windows;
 
 namespace Photobooth
 {
@@ -8,19 +8,41 @@ namespace Photobooth
 		public MainWindow()
 		{
 			InitializeComponent();
-			StartPhotoboothButton_Click(null, null);
+
+			var settings = PhotoboothSettings.Load();
+
+			PopulateFormWithSettings(settings);
 		}
 
-		private void StartPhotoboothButton_Click(object sender, RoutedEventArgs e)
+		private void PopulateFormWithSettings(PhotoboothSettings settings)
 		{
-			string promptText = Settings.Default.PromptText;
-			string fontFamilyName = Settings.Default.FontFamily;
-			double fontSize = Settings.Default.FontSize;
-			string imagePath = Settings.Default.ImagePath;
-			string imageExtension = Settings.Default.ImageExtension;
-			int displaySeconds = Settings.Default.DisplaySeconds;
+			CaptureDirectory.Text = settings.ImagePath;
+			CaptureExtension.Text = settings.ImageExtension;
+			PreviewDuration.Text = settings.DisplaySeconds.ToString();
+			PromptFont.Text = settings.FontFamilyName;
+			PromptFontSize.Text = settings.FontSize.ToString();
+			PromptText.AppendText(settings.PromptText);
+		}
 
-			KioskWindow kioskWindow = new KioskWindow(promptText, fontFamilyName, fontSize, imagePath, imageExtension, displaySeconds);
+		private PhotoboothSettings ReadSettingsFromForm()
+		{
+			return new PhotoboothSettings
+			{
+				ImagePath = CaptureDirectory.Text,
+				ImageExtension = CaptureExtension.Text,
+				DisplaySeconds = Convert.ToInt32(PreviewDuration.Text),
+				FontFamilyName = PromptFont.Text,
+				FontSize = Convert.ToInt32(PromptFontSize.Text),
+				PromptText = PromptText.Text
+			};
+		}
+
+		private void EnterKioskMode_Click(object sender, RoutedEventArgs e)
+		{
+			PhotoboothSettings settings = ReadSettingsFromForm();
+			PhotoboothSettings.Save(settings);
+
+			KioskWindow kioskWindow = new KioskWindow(settings);
 			kioskWindow.Show();
 		}
 	}

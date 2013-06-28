@@ -2,10 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Photobooth.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="PromptText" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Click the button on the remote to take a picture.
-Don't forget to smile!</Value>
-    </Setting>
     <Setting Name="FontFamily" Type="System.String" Scope="User">
       <Value Profile="(Default)">Gabriola</Value>
     </Setting>
@@ -20,6 +16,10 @@ Don't forget to smile!</Value>
     </Setting>
     <Setting Name="DisplaySeconds" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="PromptText" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Click the button on the remote to take a picture.
+Don't forget to smile!</Value>
     </Setting>
   </Settings>
 </SettingsFile>
